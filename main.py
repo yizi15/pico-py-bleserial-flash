@@ -82,7 +82,7 @@ def run(_sys_args):
         exit_prog(True)
 
     try:
-        if port.startswith('com') or port.startswith('COM') or '/ttyS' in port:
+        if port.startswith('com') or port.startswith('COM') or '/dev/tty' in port:
             conn = serial.Serial(port=port, baudrate=921600, inter_byte_timeout=0.5, timeout=10)
         else:
             conn = ble_serial.Serial(port, timeout=10)

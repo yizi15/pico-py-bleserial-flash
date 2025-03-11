@@ -6,7 +6,7 @@ import serial
 from flasher.elf import load_elf
 from flasher.util import debug, puts, usage_flasher, exit_prog
 from flasher.program import Image, Program
-
+import flasher.ble_serial as ble_serial
 
 # Called at start of main(), to catch program arguments and respond accordingly.
 def handle_args():
@@ -34,12 +34,8 @@ def run(_sys_args):
         flash_over_air = True
         exit_prog(True)
     else:
-        pc_port_paths = list()
-        [pc_port_paths.append(p[0]) for p in list(serial.tools.list_ports.comports())]
-        debug("All available serial communication ports on your machine: " + str(pc_port_paths))
-        if port not in pc_port_paths:
-            puts("Given serial port was not available.")
-            exit_prog(True)
+        pass
+    
     puts("Serial connection made.")
     file_path = str(_sys_args[1])
     filename, file_extension = os.path.splitext(file_path)
@@ -86,7 +82,10 @@ def run(_sys_args):
         exit_prog(True)
 
     try:
-        conn = serial.Serial(port=port, baudrate=921600, inter_byte_timeout=0.1, timeout=0)
+        if port.startswith('com') or port.startswith('COM') or '/ttyS' in port:
+            conn = serial.Serial(port=port, baudrate=921600, inter_byte_timeout=0.5, timeout=10)
+        else:
+            conn = ble_serial.Serial(port, timeout=10)
     except ValueError as e:
         puts("Serial parameters out of range, with exception: " + str(e))
         exit_prog(True)
@@ -107,18 +106,8 @@ img: Image
 
 # Main of the program, handles args and captures the run function in try except clauses
 # to be able to easily catch errors
-if __name__ == '__main__':
+def main():
     sys_args = handle_args()
-    try:
-        run(sys_args)
-        puts("\nJobs done. Pico should have rebooted into the flashed application.")
-    except TypeError as err:
-        puts(usage_flasher())
-    except OSError as err:
-        puts("OS error: {0}".format(err))
-    except ValueError as err:
-        puts("Value error, with error: " + str(err))
-    except Exception:
-        puts("Unexpected error: ", sys.exc_info()[0])
-        puts(traceback.print_exc())
-        raise
+    run(sys_args)
+if __name__ == '__main__':
+    main()    

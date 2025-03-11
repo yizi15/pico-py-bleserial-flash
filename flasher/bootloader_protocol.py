@@ -18,7 +18,7 @@ class PicoInfo:
 class Protocol_RP2040:
     MAX_SYNC_ATTEMPTS: int = 1
     has_sync: bool = False
-    wait_time_before_read = 0.03  # seconds
+    wait_time_before_read = 0.13  # seconds
 
     Opcodes = {
         'Sync': bytes('SYNC', 'utf-8'),

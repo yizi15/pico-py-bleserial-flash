@@ -18,7 +18,7 @@ class PicoInfo:
 class Protocol_RP2040:
     MAX_SYNC_ATTEMPTS: int = 1
     has_sync: bool = False
-    wait_time_before_read = 0.13  # seconds
+    wait_time_before_read = 0.10  # seconds
 
     Opcodes = {
         'Sync': bytes('SYNC', 'utf-8'),
@@ -129,7 +129,7 @@ class Protocol_RP2040:
         # write_readable = hex_bytes_to_int(write_buff)
         n = conn.write(write_buff)
         debug("Number of bytes written: " + str(n))
-        time.sleep(self.wait_time_before_read)
+        # time.sleep(self.wait_time_before_read)
         all_bytes, resp_ok_bytes = self.read_bootloader_resp(conn, len(self.Opcodes['ResponseOK']), True)
         debug("Erased a length of bytes, response is: " + str(all_bytes))
         if all_bytes != self.Opcodes['ResponseOK']:
@@ -151,7 +151,7 @@ class Protocol_RP2040:
         write_buff += data
         n = conn.write(write_buff)
         debug("Number of bytes written: " + str(n))
-        time.sleep(self.wait_time_before_read)
+        # time.sleep(self.wait_time_before_read)
         all_bytes, data_bytes = self.read_bootloader_resp(conn, len(self.Opcodes['ResponseOK']) + 4, True)
         debug("All bytes return from read: " + str(all_bytes))
         # all_bytes_readable = hex_bytes_to_int(all_bytes)

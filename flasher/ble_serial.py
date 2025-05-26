@@ -39,7 +39,7 @@ class ThreadSafeList:
 #监听回调函数，此处为打印消息
 def notification_handler(event_q2:queue.Queue, res_list:list, client, characteristic: BleakGATTCharacteristic, data: bytearray):
     res_list.puch_back(data)
-    print('notify', data)
+    print(f'notify, {data}')
     event_q2.put(("notify", client, characteristic, data))
     
 async def ble_main(event_q1:queue.Queue, event_q2:queue.Queue):
@@ -67,6 +67,7 @@ async def ble_main(event_q1:queue.Queue, event_q2:queue.Queue):
             print("Connected")
             await client.start_notify(item[2], functools.partial(notification_handler, event_q2,map_list[client], client))        
             event_q2.put((item[0], client))
+            
         elif item[0] == 'write':
             client:BleakClient = item[1]
             data = item[3]
@@ -80,6 +81,7 @@ async def ble_main(event_q1:queue.Queue, event_q2:queue.Queue):
             client:BleakClient = item[1]
             msg_l = map_list[client]
             event_q2.put((item[0], msg_l.size()))
+            
         elif item[0] == 'read':
             client:BleakClient = item[1]
             read_len = item[2]
@@ -90,6 +92,7 @@ async def ble_main(event_q1:queue.Queue, event_q2:queue.Queue):
                 await asyncio.sleep(0.001)
             res = msg_l.front_pop(read_len)
             event_q2.put((item[0], bytes(res) if res is not None else None))
+            
         elif item[0] == 'disconnect':
             client:BleakClient = item[1]
             await client.disconnect()
@@ -101,7 +104,7 @@ def ble_task(event_queue:queue.Queue, event_q2:queue.Queue):
 
 
 class Serial:
-    def __init__(self, bd_addr, baudrate = None, inter_byte_timeout = None, timeout = None):
+    def __init__(self, bd_addr, baudrate = None, inter_byte_timeout = 10, timeout = 10):
         self.bd_addr = bd_addr
         self.bd_name = None
         if (len(bd_addr) != 17 and len(bd_addr) != 12) or re.search(r'[^0-9a-fA-F:-]', bd_addr) is not None:
@@ -160,6 +163,7 @@ class Serial:
 
     def write(self, data):
         """向蓝牙设备发送数据"""
+        print(f'{time.time()}, write len{len(data)}')
         try:
             self.ble_run('write', (self.sock, 'fff2' ,data), 2 + 10 * len(data)/1024)
         except queue.Empty:
